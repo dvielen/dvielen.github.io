@@ -4,7 +4,7 @@ const ctx = canvas.getContext("2d");
 canvas.width = 400;
 canvas.height = 600;
 
-let gravity = 800; // Gravity in pixels per second^2
+let gravity = 1200; // Gravity in pixels per second^2
 let platformSpeed = 100; // Initial speed at which platforms move down (pixels per second)
 const maxPlatformSpeed = 300; // Maximum speed for platforms (pixels per second)
 let platformWidth = 100; // Initial platform width
@@ -63,8 +63,8 @@ class Player {
         this.dy = 0;
         this.dx = 0;
         this.speed = 300;
-        this.baseJumpPower = 450;
-        this.maxJumpPower = 750;
+        this.baseJumpPower = 550;
+        this.maxJumpPower = 850;
         this.jumping = false;  // Tracks if the player is currently jumping
         this.onPlatform = false;  // Tracks if the player is on a platform
     }
