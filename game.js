@@ -65,11 +65,11 @@ class Player {
         this.speed = 300;
         this.baseJumpPower = 450;
         this.maxJumpPower = 750;
-        this.jumping = false;
+        this.jumping = false;  // Tracks if the player is currently jumping
+        this.onPlatform = false;  // Tracks if the player is on a platform
     }
 
     draw() {
-        ctx.fillStyle = "red";
         ctx.drawImage(IMAGES.player, this.x, this.y, this.width, this.height);
     }
 
@@ -78,12 +78,14 @@ class Player {
         this.y += this.dy * deltaTime;
         this.x += this.dx * deltaTime;
 
+        // Prevent moving out of bounds
         if (this.x + this.width > canvas.width) {
             this.x = canvas.width - this.width;
         } else if (this.x < 0) {
             this.x = 0;
         }
 
+        // Check for game over condition
         const elapsedTime = Date.now() - gameStartTime;
         if (elapsedTime > gracePeriod && this.y > canvas.height) {
             endGame();
@@ -105,9 +107,10 @@ class Player {
     }
 
     jump() {
-        if (!this.jumping && this.dy >= 0) {
+        if (this.onPlatform || this.isWithinJumpLeniency()) {  // Allow jumping only if the player is on a platform
             this.dy = -this.baseJumpPower;
-            this.jumping = true;
+            this.jumping = true;  // Start the jump
+            this.onPlatform = false;  // Player is now airborne
             isJumping = true;
             jumpStartTime = Date.now();
         }
@@ -130,9 +133,27 @@ class Player {
         this.jumping = false;
     }
 
+    isWithinJumpLeniency() {
+        const leniency = 5;  // Allow a leniency of 5 pixels
+        for (let i = 0; i < platforms.length; i++) {
+            const platform = platforms[i];
+            if (
+                player.y + player.height >= platform.y - leniency &&
+                player.y + player.height <= platform.y + platform.height &&
+                player.x + player.width > platform.x &&
+                player.x < platform.x + platform.width
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
     land(platformSpeed) {
-        this.jumping = false;
-        this.dy = platformSpeed; // Set the player's vertical speed to match the platform's speed
+        this.jumping = false;  // Player is no longer jumping
+        this.dy = platformSpeed;  // Match platform's speed
+        this.onPlatform = true;  // Player is now on a platform
     }
 
     collectCoin(coin) {
@@ -321,18 +342,21 @@ function initPlatforms() {
 initPlatforms();
 
 function handlePlatforms(deltaTime) {
+    let playerLanded = false;
+
     platforms.forEach((platform, index) => {
         platform.update(deltaTime);
 
         if (
-            player.dy > 0 && // Falling down
+            player.dy > 0 &&  // Falling down
             player.x + player.width > platform.x &&
             player.x < platform.x + platform.width &&
             player.y + player.height >= platform.y &&
             player.y + player.height <= platform.y + platform.speed * deltaTime + player.dy * deltaTime
         ) {
             player.y = platform.y - player.height;
-            player.land(platform.speed); // Player lands on a platform
+            player.land(platform.speed);  // Land the player on the platform
+            playerLanded = true;  // Mark that the player has landed
         }
 
         if (platform.y > canvas.height) {
@@ -341,7 +365,13 @@ function handlePlatforms(deltaTime) {
             platforms.unshift(new Platform(newX, -platformHeight, platformSpeed));
         }
     });
+
+    if (!playerLanded) {
+        player.onPlatform = false;  // Player is not on a platform, so they are airborne
+    }
 }
+
+
 
 function handleCoins(deltaTime) {
     coins.forEach((coin, index) => {
