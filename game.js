@@ -32,6 +32,28 @@ let jumpStartTime = null;
 const maxJumpDuration = 1000; // Maximum time the jump can be held (in ms)
 const playerMaxJumpPower = 400; // Player's maximum jump power, should be above the max platform speed
 
+const IMAGES = {
+    player: new Image(),
+    platform: new Image(),
+    coinGold: new Image(),
+    coinSilver: new Image(),
+    coinBlue: new Image(),
+    coinGreen: new Image(),
+    cloud: new Image(),
+    startScreen: new Image(),  // Add this line
+    resultScreen: new Image()   // Add this line
+};
+
+IMAGES.player.src = 'path/to/player.png';
+IMAGES.platform.src = 'path/to/platform.png';
+IMAGES.coinGold.src = 'path/to/coin_gold.png';
+IMAGES.coinSilver.src = 'path/to/coin_silver.png';
+IMAGES.coinBlue.src = 'path/to/coin_blue.png';
+IMAGES.coinGreen.src = 'path/to/coin_green.png';
+IMAGES.cloud.src = 'images/cloud.png';
+IMAGES.startScreen.src = 'images/box_hackathon.png';
+IMAGES.resultScreen.src = 'images/box_hackathon.png';
+
 class Player {
     constructor() {
         this.width = 40;
@@ -41,7 +63,7 @@ class Player {
         this.dy = 0;
         this.dx = 0;
         this.speed = 300;
-        this.baseJumpPower = 600;
+        this.baseJumpPower = 450;
         this.maxJumpPower = playerMaxJumpPower;
         this.jumping = false;
     }
@@ -207,11 +229,62 @@ class Effect {
     }
 }
 
+
+class Cloud {
+    constructor(x, y, speed) {
+        this.x = x;
+        this.y = y;
+        this.speed = speed; // Speed in pixels per second
+        this.width = 128; // Set the cloud width
+        this.height = 72; // Set the cloud height
+    }
+
+    draw() {
+        ctx.drawImage(IMAGES.cloud, this.x, this.y, this.width, this.height);
+    }
+
+    update(deltaTime) {
+        this.y += this.speed * deltaTime;
+        if (this.y > canvas.height) {
+            this.y = -this.height;
+            this.x = Math.random() * (canvas.width - this.width);
+        }
+        this.draw();
+    }
+}
+
+let clouds = [];
+
+function initClouds() {
+    for (let i = 0; i < 3; i++) { // Create 3 clouds
+        const x = Math.random() * (canvas.width - 128);
+        const y = Math.random() * canvas.height;
+        const speed = 20; // Slow speed for clouds
+        clouds.push(new Cloud(x, y, speed));
+    }
+}
+initClouds();
+
+
+function handleClouds(deltaTime) {
+    clouds.forEach(cloud => cloud.update(deltaTime));
+}
+
+
 function drawStartScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "black";
+    // Draw the result screen image
+    const imgWidth = 232;
+    const imgHeight = 47;
+    const imgX = (canvas.width - imgWidth) / 2; // Center the image horizontally
+    const imgY = 50; // Position the image near the top
+    ctx.drawImage(IMAGES.resultScreen, imgX, imgY, imgWidth, imgHeight);
+
+
+
+    ctx.fillStyle = "white";
     ctx.font = "30px Arial";
-    ctx.fillText("Welcome to the Game!", 40, 150);
+    ctx.fillText("BoxCoin!", 40, 150);
 
     ctx.font = "20px Arial";
     ctx.fillText("Controls:", 40, 200);
@@ -225,6 +298,7 @@ function drawStartScreen() {
 
     ctx.font = "24px Arial";
     ctx.fillText("Press any key to start", 60, 500);
+
 }
 
 const player = new Player();
@@ -355,26 +429,32 @@ function applyMilestones(deltaTime) {
 function drawGameOverScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+    ctx.fillStyle = "rgb(110, 146, 247)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the result screen image
+    const imgWidth = 232;
+    const imgHeight = 47;
+    const imgX = (canvas.width - imgWidth) / 2; // Center the image horizontally
+    const imgY = 50; // Position the image near the top
+    ctx.drawImage(IMAGES.resultScreen, imgX, imgY, imgWidth, imgHeight);
 
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
-    ctx.fillText("Game Over", canvas.width / 2 - 80, canvas.height / 2 - 150);
+    ctx.fillText("Game Over", canvas.width / 2 - 80, imgY + imgHeight + 50);
 
     ctx.font = "20px Arial";
-    ctx.fillText(`Score: ${score}`, canvas.width / 2 - 50, canvas.height / 2 - 100);
-    ctx.fillText(`Coins Collected: ${coinCount}`, canvas.width / 2 - 90, canvas.height / 2 - 70);
-    ctx.fillText(`Survival Time: ${Math.floor((Date.now() - gameStartTime) / 1000)} seconds`, canvas.width / 2 - 120, canvas.height / 2 - 40);
-    ctx.fillText(`Level Reached: ${currentLevel}`, canvas.width / 2 - 80, canvas.height / 2 - 10);
+    ctx.fillText(`Score: ${score}`, canvas.width / 2 - 50, imgY + imgHeight + 100);
+    ctx.fillText(`Coins Collected: ${coinCount}`, canvas.width / 2 - 90, imgY + imgHeight + 130);
+    ctx.fillText(`Survival Time: ${Math.floor((Date.now() - gameStartTime) / 1000)} seconds`, canvas.width / 2 - 120, imgY + imgHeight + 160);
+    ctx.fillText(`Level Reached: ${currentLevel}`, canvas.width / 2 - 80, imgY + imgHeight + 190);
 
     ctx.fillStyle = "lightblue";
-    ctx.fillText("Download Screenshot", canvas.width / 2 - 100, canvas.height / 2 + 40);
 
     const downloadButton = document.createElement("button");
     downloadButton.innerText = "Download Screenshot";
     downloadButton.style.position = "absolute";
-    downloadButton.style.left = `${canvas.offsetLeft + canvas.width / 2 - 100}px`;
+    downloadButton.style.left = `${canvas.offsetLeft + canvas.width / 2 - 75}px`;
     downloadButton.style.top = `${canvas.offsetTop + canvas.height / 2 + 60}px`;
     downloadButton.onclick = downloadScreenshot;
     document.body.appendChild(downloadButton);
@@ -392,6 +472,8 @@ function animate(currentTime) {
     lastTime = currentTime;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    handleClouds(deltaTime); // Draw the clouds first as the background
     applyMilestones(deltaTime);
     handlePlatforms(deltaTime);
     handleCoins(deltaTime);

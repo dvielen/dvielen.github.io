@@ -8,14 +8,14 @@ body {
 #gameCanvas {
     display: block;
     margin: 0 auto;
-    background-color: #7ec850;
+    background-color: rgb(110, 146, 247);
     border: 2px solid #000;
 }
 
 #gameOver {
     position: absolute;
-    top: 80%;
-    left: 50%;
+    top: 20%;
+    left: 30%;
     transform: translate(-50%, -50%);
     text-align: center;
     background: rgba(255, 255, 255, 0.9);
