@@ -29,8 +29,8 @@ let currentLevel = 1; // Track the current level
 
 let isJumping = false;
 let jumpStartTime = null;
-const maxJumpDuration = 1000; // Maximum time the jump can be held (in ms)
-const playerMaxJumpPower = 400; // Player's maximum jump power, should be above the max platform speed
+const maxJumpDuration = 1300; // Maximum time the jump can be held (in ms)
+const playerMaxJumpPower = 600; // Player's maximum jump power, should be above the max platform speed
 
 const IMAGES = {
     player: new Image(),
@@ -44,7 +44,7 @@ const IMAGES = {
     resultScreen: new Image()   // Add this line
 };
 
-IMAGES.player.src = 'path/to/player.png';
+IMAGES.player.src = 'images/box.png';
 IMAGES.platform.src = 'path/to/platform.png';
 IMAGES.coinGold.src = 'path/to/coin_gold.png';
 IMAGES.coinSilver.src = 'path/to/coin_silver.png';
@@ -56,7 +56,7 @@ IMAGES.resultScreen.src = 'images/box_hackathon.png';
 
 class Player {
     constructor() {
-        this.width = 40;
+        this.width = 57;
         this.height = 50;
         this.x = canvas.width / 2 - this.width / 2;
         this.y = 0;
@@ -64,13 +64,13 @@ class Player {
         this.dx = 0;
         this.speed = 300;
         this.baseJumpPower = 450;
-        this.maxJumpPower = playerMaxJumpPower;
+        this.maxJumpPower = 750;
         this.jumping = false;
     }
 
     draw() {
         ctx.fillStyle = "red";
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.drawImage(IMAGES.player, this.x, this.y, this.width, this.height);
     }
 
     update(deltaTime) {
@@ -117,15 +117,17 @@ class Player {
         if (isJumping && this.jumping) {
             const elapsedJumpTime = Date.now() - jumpStartTime;
             if (elapsedJumpTime < maxJumpDuration) {
-                this.dy -= (this.maxJumpPower - this.baseJumpPower) / (maxJumpDuration / 10) * deltaTime;
+                const jumpForce = (this.maxJumpPower - this.baseJumpPower) / (maxJumpDuration / 10) * deltaTime;
+                this.dy -= jumpForce;
             } else {
-                isJumping = false;
+                isJumping = false; // Stop jumping if max jump duration is reached
             }
         }
     }
 
     endJump() {
-        isJumping = false;
+        isJumping = false; // Stop the jump when the spacebar is released
+        this.jumping = false;
     }
 
     land(platformSpeed) {
@@ -330,7 +332,7 @@ function handlePlatforms(deltaTime) {
             player.y + player.height <= platform.y + platform.speed * deltaTime + player.dy * deltaTime
         ) {
             player.y = platform.y - player.height;
-            player.land(platform.speed); // Pass the platform's speed to the land method
+            player.land(platform.speed); // Player lands on a platform
         }
 
         if (platform.y > canvas.height) {
@@ -478,7 +480,8 @@ function animate(currentTime) {
     handlePlatforms(deltaTime);
     handleCoins(deltaTime);
     handleEffects(deltaTime);
-    player.continueJump(deltaTime);
+
+    player.continueJump(deltaTime);  // Ensure jump continues while space is held
     player.update(deltaTime);
     drawScore();
 
@@ -490,6 +493,7 @@ function animate(currentTime) {
         animationId = requestAnimationFrame(animate);
     }
 }
+
 
 function drawDebugInfo(deltaTime) {
     const fps = (1 / deltaTime).toFixed(2); // Calculate frames per second
@@ -528,7 +532,7 @@ document.addEventListener("keydown", (event) => {
         } else if (event.key === "ArrowRight" || event.key === "d" || event.key === "D") {
             player.moveRight();
         } else if (event.key === " " || event.key === "Spacebar" || event.key === "w" || event.key === "W") {
-            player.jump();
+            player.jump();  // Initiate the jump
         } else if (event.key === "i" || event.key === "I") {
             debugMode = !debugMode;
         }
@@ -540,10 +544,11 @@ document.addEventListener("keyup", (event) => {
         if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === "a" || event.key === "d" || event.key === "A" || event.key === "D") {
             player.stopMoving();
         } else if (event.key === " " || event.key === "Spacebar" || event.key === "w" || event.key === "W") {
-            player.endJump();
+            player.endJump();  // Stop applying upward force
         }
     }
 });
+
 
 document.getElementById("restartButton").addEventListener("click", () => {
     location.reload();
