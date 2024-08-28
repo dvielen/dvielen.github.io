@@ -6,7 +6,7 @@ canvas.height = 600;
 
 let gravity = 1200; // Gravity in pixels per second^2
 let platformSpeed = 100; // Initial speed at which platforms move down (pixels per second)
-const maxPlatformSpeed = 300; // Maximum speed for platforms (pixels per second)
+const maxPlatformSpeed = 130; // Maximum speed for platforms (pixels per second)
 let platformWidth = 100; // Initial platform width
 let platformHeight = 30; // Platform height
 const platformGap = 120; // Vertical gap between platforms
@@ -412,7 +412,7 @@ function spawnCoin() {
     const y = -20;
     coins.push(new Coin(x, y));
 
-    setTimeout(spawnCoin, coinSpawnInterval);
+    setTimeout(spawnCoin, coinSpawnInterval - Math.min(3500, (currentLevel * 200))); // Decrease spawn interval by 200ms per level
 }
 
 function hexToRgbString(hex) {
@@ -426,7 +426,7 @@ function hexToRgbString(hex) {
 function updateScore() {
     if (!gameOver) {
         score += 1;
-        setTimeout(updateScore, 500); // Increase score every half second
+        setTimeout(updateScore, 500 - Math.min(450, (currentLevel* 50))); // Increase score every half second
     }
 }
 
@@ -438,17 +438,17 @@ function drawScore() {
 
 function applyMilestones(deltaTime) {
     const elapsedTime = (Date.now() - gameStartTime) / 1000;
-    const levelDurations = [20, 40, 60, 80, 100, 120, 140, 160, 180, 200];
+    const levelDurations = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 240, 260, 280, 300, 320, 340];
 
     levelDurations.forEach((time, index) => {
         if (elapsedTime >= time && milestonesReached <= index) {
             milestonesReached++;
             currentLevel++;
-            levelTexts.push(new Effect(canvas.width / 2 - 100, canvas.height / 2, `LEVEL ${milestonesReached}`, "255, 255, 255"));
+            levelTexts.push(new Effect(canvas.width / 2 - 100, canvas.height / 2, `LEVEL ${currentLevel}`, "255, 255, 255"));
 
-            platformSpeed = Math.min(platformSpeed + 20, maxPlatformSpeed); // Increase platform speed by 20 pixels per second
+            platformSpeed = Math.min(platformSpeed + 5, maxPlatformSpeed); // Increase platform speed by 5 pixels per second
 
-            platformWidth = Math.max(platformWidth - 10, 50); // Decrease platform width slightly, but not below 50 pixels
+            platformWidth = Math.max(platformWidth - 10, 20); // Decrease platform width slightly, but not below 50 pixels
 
             platforms.forEach(platform => {
                 platform.speed = platformSpeed;
@@ -534,14 +534,10 @@ function drawDebugInfo(deltaTime) {
     ctx.font = "16px Arial";
     ctx.fillText("Debug Info:", 20, canvas.height - 130);
     ctx.fillText(`FPS: ${fps}`, 20, canvas.height - 110);
-
-    ctx.fillText("Object Speeds:", 20, canvas.height - 90);
-    platforms.forEach((platform, index) => {
-        ctx.fillText(`Platform ${index + 1}: ${platform.speed.toFixed(2)} px/s`, 20, canvas.height - 70 + index * 20);
-    });
+    ctx.fillText(`Platforms: ${platforms[0].speed.toFixed(2)} px/s`, 20, canvas.height - 90);
 
     coins.forEach((coin, index) => {
-        ctx.fillText(`Coin ${index + 1}: ${coin.speed.toFixed(2)} px/s`, 20, canvas.height - 70 + (platforms.length + index) * 20);
+        ctx.fillText(`Coin ${index + 1}: ${coin.speed.toFixed(2)} px/s`, 20, canvas.height - 70 + (index * 20));
     });
 }
 
